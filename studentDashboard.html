@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Student Dashboard – BusTrack Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #504CCF;
+            --secondary: #11D3BC;
+            --accent: #FF6B6B;
+            --warning: #FFD166;
+            --success: #06D6A0;
+            --danger: #EF233C;
+            --bg: #F0F2F8;
+            --bg-card: #ffffff;
+            --bg-sb: #1A1C2E;
+            --text: #1A1C2E;
+            --text-sec: #6B7280;
+            --text-muted: #9CA3AF;
+            --border: #E5E7EB;
+            --border-lt: #F3F4F6;
+            --shadow: 0 4px 24px rgba(108, 99, 255, .08);
+            --shadow-h: 0 8px 32px rgba(108, 99, 255, .18);
+            --r-sm: 8px;
+            --r-md: 12px;
+            --r-lg: 20px;
+            --r-xl: 28px;
+            --t: .25s cubic-bezier(.4, 0, .2, 1);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body.dark {
+            --bg: #0F1117;
+            --bg-card: #1A1C2E;
+            --bg-sb: #0A0B14;
+            --text: #F1F5F9;
+            --text-sec: #94A3B8;
+            --text-muted: #64748B;
+            --border: #2D3148;
+            --border-lt: #1E2035;
+            --shadow: 0 4px 24px rgba(0, 0, 0, .4);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            transition: background var(--t), color var(--t)
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit
+        }
+
+        button {
+            cursor: pointer;
+            font-family: var(--font)
+        }
+
+        input,
+        textarea,
+        select {
+            font-family: var(--font);
+            outline: none
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: var(--bg-sb);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, .2);
+            transition: width var(--t), transform var(--t);
+        }
+
+        .sidebar.collapsed {
+            width: 72px
+        }
+
+        .sidebar.collapsed .nl,
+        .sidebar.collapsed .sb-title,
+        .sidebar.collapsed .sb-sub,
+        .sidebar.collapsed .sb-brand,
+        .sidebar.collapsed .ud,
+        .sidebar.collapsed .btn-lo {
+            display: none
+        }
+
+        .sidebar.collapsed .sh {
+            justify-content: center
+        }
+
+        .sidebar.collapsed .ni {
+            justify-content: center;
+            padding: 14px
+        }
+
+        .sidebar.collapsed .ui {
+            justify-content: center
+        }
+
+        .sh {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, .06)
+        }
+
+        .sl {
+            font-size: 28px;
+            flex-shrink: 0
+        }
+
+        .sb-brand {
+            flex: 1
+        }
+
+        .sb-title {
+            display: block;
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -.3px
+        }
+
+        .sb-sub {
+            font-size: 11px;
+            color: #8B85FF;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        .st {
+            background: none;
+            border: none;
+            color: #CBD5E1;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all var(--t);
+            flex-shrink: 0
+        }
+
+        .st:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, .08)
+        }
+
+        .snav {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto
+        }
+
+        .ni {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--r-md);
+            color: #CBD5E1;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all var(--t)
+        }
+
+        .ni:hover {
+            background: rgba(255, 255, 255, .08);
+            color: #fff
+        }
+
+        .ni.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(108, 99, 255, .4)
+        }
+
+        .nico {
+            font-size: 18px;
+            flex-shrink: 0
+        }
+
+        .nl {
+            flex: 1
+        }
+
+        .nb {
+            background: var(--accent);
+            color: #fff;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .sf {
+            padding: 16px 12px;
+            border-top: 1px solid rgba(255, 255, 255, .06);
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .ui {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .ua {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0
+        }
+
+        .ud {
+            display: flex;
+            flex-direction: column
+        }
+
+        .un {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff
+        }
+
+        .ur {
+            font-size: 11px;
+            color: #CBD5E1;
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        .btn-lo {
+            width: 100%;
+            padding: 10px;
+            background: rgba(239, 35, 60, .15);
+            border: 1px solid rgba(239, 35, 60, .3);
+            border-radius: var(--r-sm);
+            color: #ff6b6b;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all var(--t);
+            text-align: center
+        }
+
+        .btn-lo:hover {
+            background: var(--danger);
+            color: #fff
+        }
+
+        /* ── MAIN ── */
+        .main {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left var(--t)
+        }
+
+        .main.exp {
+            margin-left: 72px
+        }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            height: 68px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .05);
+        }
+
+        .tl {
+            display: flex;
+            align-items: center;
+            gap: 16px
+        }
+
+        .mmb {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: var(--text-sec)
+        }
+
+        .pt h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text)
+        }
+
+        .pt p {
+            font-size: 12px;
+            color: var(--text-muted)
+        }
+
+        .tr {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .tbtn {
+            position: relative;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: 8px 12px;
+            font-size: 18px;
+            color: var(--text-sec);
+            transition: all var(--t)
+        }
+
+        .tbtn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary)
+        }
+
+        .bb {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--accent);
+            color: #fff;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .ls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--success);
+            background: rgba(6, 214, 160, .1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(6, 214, 160, .3)
+        }
+
+        .ld {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.5s infinite ease-in-out
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: .5;
+                transform: scale(1.15)
+            }
+        }
+
+        .tu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg);
+            border-radius: var(--r-sm);
+            border: 1px solid var(--border)
+        }
+
+        .tua {
+            font-size: 18px
+        }
+
+        .tun {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text)
+        }
+
+        /* ── SECTIONS ── */
+        .sec {
+            display: none;
+            padding: 28px;
+            animation: fadeS .3s ease;
+            flex: 1
+        }
+
+        .sec.active {
+            display: block
+        }
+
+        @keyframes fadeS {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* ── STATS CARDS ── */
+        .srow {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px
+        }
+
+        .sc {
+            background: var(--bg-card);
+            border-radius: var(--r-md);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: all var(--t)
+        }
+
+        .sc:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-h)
+        }
+
+        .sci {
+            font-size: 32px
+        }
+
+        .scv {
+            display: block;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text)
+        }
+
+        .scl {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500
+        }
+
+        #etaC {
+            border-color: var(--primary)
+        }
+
+        /* ── MAP ROW ── */
+        .mrow {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px
+        }
+
+        .mc {
+            background: var(--bg-card);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow)
+        }
+
+        .mh {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 14px
+        }
+
+        .ma {
+            display: flex;
+            gap: 8px
+        }
+
+        .mbtn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: 6px 10px;
+            font-size: 14px;
+            transition: all var(--t)
+        }
+
+        .mbtn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary)
+        }
+
+        #studentMap {
+            height: 400px;
+            width: 100%
+        }
+
+        .ml {
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: var(--text-muted);
+            font-size: 14px
+        }
+
+        .sr {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(108, 99, 255, .2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* ── INFO PANEL ── */
+        .ip {
+            display: flex;
+            flex-direction: column;
+            gap: 16px
+        }
+
+        .aa {
+            background: linear-gradient(135deg, rgba(255, 107, 107, .15), rgba(255, 107, 107, .05));
+            border: 1.5px solid rgba(255, 107, 107, .5);
+            border-radius: var(--r-md);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: ap 1s ease-in-out infinite alternate
+        }
+
+        @keyframes ap {
+            from {
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, .2)
+            }
+
+            to {
+                box-shadow: 0 0 0 8px rgba(255, 107, 107, 0)
+            }
+        }
+
+        .ai {
+            font-size: 28px
+        }
+
+        .ac strong {
+            font-size: 14px;
+            color: var(--accent)
+        }
+
+        .ac p {
+            font-size: 12px;
+            color: var(--text-sec);
+            margin-top: 3px
+        }
+
+        .etac {
+            background: var(--bg-card);
+            border-radius: var(--r-md);
+            padding: 18px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow)
+        }
+
+        .etah {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px
+        }
+
+        .etab {
+            background: var(--primary);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600
+        }
+
+        .etp {
+            height: 6px;
+            background: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 14px
+        }
+
+        .etbar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            transition: width 1s ease
+        }
+
+        .edr {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-lt);
+            color: var(--text-sec)
+        }
+
+        .edr:last-child {
+            border-bottom: none
+        }
+
+        .edr strong {
+            color: var(--text);
+            font-weight: 600
+        }
+
+        .bsc {
+            background: var(--bg-card);
+            border-radius: var(--r-md);
+            padding: 18px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow)
+        }
+
+        .bsh {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text)
+        }
+
+        .bsr {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border-lt);
+            color: var(--text-sec)
+        }
+
+        .bsr:last-child {
+            border-bottom: none
+        }
+
+        .bsr span:last-child {
+            font-weight: 600;
+            color: var(--text)
+        }
+
+        /* ── SECTION CARD ── */
+        .scard {
+            background: var(--bg-card);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden
+        }
+
+        .schdr {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .schdr h3 {
+            font-size: 16px;
+            font-weight: 700
+        }
+
+        .rbadge {
+            background: rgba(108, 99, 255, .1);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(108, 99, 255, .2)
+        }
+
+        .btn-clr {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: 6px 14px;
+            font-size: 13px;
+            color: var(--text-muted);
+            transition: all var(--t)
+        }
+
+        .btn-clr:hover {
+            background: var(--danger);
+            color: #fff;
+            border-color: var(--danger)
+        }
+
+        /* ── ROUTE SECTION ── */
+        .rl {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 24px;
+            padding: 24px
+        }
+
+        .stl {
+            display: flex;
+            flex-direction: column
+        }
+
+        .sti {
+            display: flex;
+            gap: 16px;
+            position: relative
+        }
+
+        .sti::after {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 40px;
+            width: 2px;
+            height: calc(100% - 10px);
+            background: var(--border)
+        }
+
+        .sti:last-child::after {
+            display: none
+        }
+
+        .std {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            transition: all var(--t)
+        }
+
+        .sti.upcoming .std {
+            border-color: var(--warning);
+            background: var(--warning);
+            box-shadow: 0 0 0 4px rgba(255, 209, 102, .2);
+            animation: gp 1.5s infinite ease-in-out
+        }
+
+        @keyframes gp {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 4px rgba(255, 209, 102, .2)
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(255, 209, 102, 0)
+            }
+        }
+
+        .sti.passed .std {
+            border-color: var(--success);
+            background: var(--success)
+        }
+
+        .sti.your-stop .std {
+            border-color: var(--primary);
+            background: var(--primary)
+        }
+
+        .stinfo {
+            padding: 8px 0 24px
+        }
+
+        .stn {
+            font-size: 14px;
+            font-weight: 600
+        }
+
+        .stt {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px
+        }
+
+        .stag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px
+        }
+
+        .tag-u {
+            background: rgba(255, 209, 102, .2);
+            color: #d4940c
+        }
+
+        .tag-y {
+            background: rgba(108, 99, 255, .15);
+            color: var(--primary)
+        }
+
+        .tag-p {
+            background: rgba(6, 214, 160, .15);
+            color: var(--success)
+        }
+
+        .rs {
+            display: flex;
+            flex-direction: column;
+            gap: 16px
+        }
+
+        .rscard {
+            background: var(--bg);
+            border-radius: var(--r-md);
+            padding: 18px;
+            border: 1px solid var(--border)
+        }
+
+        .rst {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px
+        }
+
+        .rsr {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-lt);
+            color: var(--text-sec)
+        }
+
+        .rsr:last-child {
+            border-bottom: none
+        }
+
+        .rsr span:last-child {
+            font-weight: 600;
+            color: var(--text)
+        }
+
+        .ob {
+            color: var(--success)
+        }
+
+        /* ── NOTIFICATIONS ── */
+        .nl-list {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 500px;
+            overflow-y: auto
+        }
+
+        .ni-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: var(--r-md);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            transition: all var(--t);
+            animation: fadeIn .3s ease
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px)
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .ni-item:hover {
+            border-color: var(--primary)
+        }
+
+        .nii {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px
+        }
+
+        .nib {
+            flex: 1
+        }
+
+        .nit {
+            font-size: 14px;
+            font-weight: 600
+        }
+
+        .nim {
+            font-size: 13px;
+            color: var(--text-sec);
+            margin-top: 2px
+        }
+
+        .nitime {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px
+        }
+
+        .ne {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px
+        }
+
+        /* ── SCHEDULE ── */
+        .sg {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 24px
+        }
+
+        .sday {
+            border-radius: var(--r-md);
+            border: 1px solid var(--border);
+            overflow: hidden
+        }
+
+        .sdh {
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            background: var(--bg);
+            color: var(--text-sec);
+            border-bottom: 1px solid var(--border)
+        }
+
+        .sdh.today {
+            background: var(--primary);
+            color: #fff
+        }
+
+        .ss {
+            padding: 10px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border-lt);
+            color: var(--text-sec)
+        }
+
+        .ss:last-child {
+            border-bottom: none
+        }
+
+        .ss strong {
+            display: block;
+            color: var(--text);
+            font-size: 11px
+        }
+
+        /* ── ARRIVAL TOAST ── */
+        .at {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: linear-gradient(135deg, #1A1C2E, #2D3168);
+            color: #fff;
+            border: 1px solid var(--primary);
+            border-radius: var(--r-lg);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 9999;
+            box-shadow: 0 16px 48px rgba(108, 99, 255, .4);
+            transition: all .4s cubic-bezier(.4, 0, .2, 1);
+            min-width: 320px;
+            opacity: 0
+        }
+
+        .at.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0)
+        }
+
+        .atco {
+            flex: 1
+        }
+
+        .atco strong {
+            font-size: 15px;
+            font-weight: 700
+        }
+
+        .atco p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, .75);
+            margin-top: 2px
+        }
+
+        .atcl {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, .5);
+            font-size: 16px;
+            padding: 4px 8px
+        }
+
+        .atcl:hover {
+            color: #fff
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1A1C2E;
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: var(--r-md);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: all .3s ease;
+            pointer-events: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .3);
+            max-width: 320px
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:1024px) {
+            .srow {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .mrow {
+                grid-template-columns: 1fr
+            }
+
+            .rl {
+                grid-template-columns: 1fr
+            }
+
+            .sg {
+                grid-template-columns: repeat(3, 1fr)
+            }
+        }
+
+        @media(max-width:768px) {
+            .sidebar {
+                transform: translateX(-260px)
+            }
+
+            .sidebar.mob {
+                transform: translateX(0)
+            }
+
+            .main {
+                margin-left: 0 !important
+            }
+
+            .mmb {
+                display: block
+            }
+
+            .topbar {
+                padding: 0 16px
+            }
+
+            .tun {
+                display: none
+            }
+
+            .sec {
+                padding: 16px
+            }
+
+            .sg {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+    </style>
+</head>
+
+<body id="body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sh">
+            <div class="sl">🚌</div>
+            <div class="sb-brand">
+                <span class="sb-title">BusTrack</span>
+                <span class="sb-sub">Pro</span>
+            </div>
+            <button class="st" onclick="toggleSidebar()">☰</button>
+        </div>
+        <nav class="snav">
+            <a class="ni active" id="nav-map" href="#" onclick="showSec('map')"><span class="nico">🗺️</span><span
+                    class="nl">Live Map</span></a>
+            <a class="ni" id="nav-route" href="#" onclick="showSec('route')"><span class="nico">📍</span><span
+                    class="nl">My Route</span></a>
+            <a class="ni" id="nav-notifications" href="#" onclick="showSec('notifications')">
+                <span class="nico">🔔</span><span class="nl">Notifications</span>
+                <span class="nb" id="notifBadge">0</span>
+            </a>
+            <a class="ni" id="nav-schedule" href="#" onclick="showSec('schedule')"><span class="nico">📅</span><span
+                    class="nl">Schedule</span></a>
+        </nav>
+        <div class="sf">
+            <div class="ui">
+                <div class="ua">🎓</div>
+                <div class="ud"><span class="un" id="sName">Arjun Kumar</span><span class="ur">Student</span></div>
+            </div>
+            <button class="btn-lo" onclick="logout()">🚪 Logout</button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main" id="mainContent">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="tl">
+                <button class="mmb" onclick="toggleSidebar()">☰</button>
+                <div class="pt" id="pageTitle">
+                    <h2>Live Map</h2>
+                    <p>Real-time bus tracking</p>
+                </div>
+            </div>
+            <div class="tr">
+                <button class="tbtn" onclick="showSec('notifications')" title="Notifications">🔔<span class="bb"
+                        id="bellBadge">0</span></button>
+                <button class="tbtn" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+                <div class="ls"><span class="ld"></span><span>Live</span></div>
+                <div class="tu"><span class="tua">🎓</span><span class="tun" id="tName">Arjun Kumar</span></div>
+            </div>
+        </header>
+
+        <!-- MAP SECTION -->
+        <section class="sec active" id="sec-map">
+            <div class="srow">
+                <div class="sc">
+                    <div class="sci">🚌</div>
+                    <div><span class="scv" id="sBusNum">B-102</span><span class="scl">Bus Number</span></div>
+                </div>
+                <div class="sc">
+                    <div class="sci">👨‍✈️</div>
+                    <div><span class="scv" id="sDriver">Rajesh Kumar</span><span class="scl">Driver</span></div>
+                </div>
+                <div class="sc">
+                    <div class="sci">🛣️</div>
+                    <div><span class="scv" id="sRoute">Route A</span><span class="scl">Route</span></div>
+                </div>
+                <div class="sc" id="etaC">
+                    <div class="sci">⏱️</div>
+                    <div><span class="scv" id="etaVal">--</span><span class="scl">ETA (mins)</span></div>
+                </div>
+            </div>
+            <div class="mrow">
+                <div class="mc">
+                    <div class="mh">
+                        <span>🗺️ Live Bus Location</span>
+                        <div class="ma">
+                            <button class="mbtn" onclick="recenterMap()" title="Recenter">🎯</button>
+                            <button class="mbtn" onclick="toggleMapStyle()" title="Satellite">🛰️</button>
+                        </div>
+                    </div>
+                    <div class="ml" id="mapLoading">
+                        <div class="sr"></div>
+                        <p>Loading live map...</p>
+                    </div>
+                    <div id="studentMap"></div>
+                </div>
+                <div class="ip">
+                    <div class="aa hidden" id="arrAlert">
+                        <div class="ai">🚨</div>
+                        <div class="ac"><strong>Bus Arriving Soon!</strong>
+                            <p id="alertMsg">Your bus is 1 minute away!</p>
+                        </div>
+                    </div>
+                    <div class="etac">
+                        <div class="etah"><span>⏱️ Estimated Arrival</span><span class="etab"
+                                id="etaBadge">Calculating...</span></div>
+                        <div class="etp">
+                            <div class="etbar" id="etaBar" style="width:10%"></div>
+                        </div>
+                        <div class="edr"><span>Next Stop:</span><strong id="nextStop">--</strong></div>
+                        <div class="edr"><span>Your Stop:</span><strong id="yourStop">Main Gate</strong></div>
+                    </div>
+                    <div class="bsc">
+                        <div class="bsh">🚌 Bus Status</div>
+                        <div class="bsr"><span>Speed</span><span id="busSpeed">-- km/h</span></div>
+                        <div class="bsr"><span>Current Stop</span><span id="curStop">--</span></div>
+                        <div class="bsr"><span>Stops Remaining</span><span id="stopsRem">--</span></div>
+                        <div class="bsr"><span>Last Updated</span><span id="lastUpd">--</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ROUTE SECTION -->
+        <section class="sec" id="sec-route">
+            <div class="scard">
+                <div class="schdr">
+                    <h3>📍 My Route Details</h3><span class="rbadge" id="routeName">Route A – City Express</span>
+                </div>
+                <div class="rl">
+                    <div class="stl" id="stopTimeline"></div>
+                    <div class="rs">
+                        <div class="rscard">
+                            <div class="rst">🚌 Bus Details</div>
+                            <div class="rsr"><span>Bus Number</span><span id="rsBusNum">B-102</span></div>
+                            <div class="rsr"><span>Driver</span><span id="rsDriver">Rajesh Kumar</span></div>
+                            <div class="rsr"><span>Contact</span><span>+91 98765 43210</span></div>
+                            <div class="rsr"><span>Capacity</span><span>45 Seats</span></div>
+                            <div class="rsr"><span>Status</span><span class="ob">🟢 Active</span></div>
+                        </div>
+                        <div class="rscard">
+                            <div class="rst">📅 Schedule</div>
+                            <div class="rsr"><span>Morning Pickup</span><span>7:00 AM</span></div>
+                            <div class="rsr"><span>College Arrival</span><span>8:30 AM</span></div>
+                            <div class="rsr"><span>Evening Drop</span><span>5:30 PM</span></div>
+                            <div class="rsr"><span>Total Duration</span><span>90 min</span></div>
+                            <div class="rsr"><span>Total Stops</span><span id="totalStops">--</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NOTIFICATIONS SECTION -->
+        <section class="sec" id="sec-notifications">
+            <div class="scard">
+                <div class="schdr">
+                    <h3>🔔 Notifications</h3><button class="btn-clr" onclick="clearNotifs()">Clear All</button>
+                </div>
+                <div class="nl-list" id="notifList">
+                    <div class="ne">No notifications yet.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCHEDULE SECTION -->
+        <section class="sec" id="sec-schedule">
+            <div class="scard">
+                <div class="schdr">
+                    <h3>📅 Weekly Schedule</h3>
+                </div>
+                <div class="sg" id="schedGrid"></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Arrival Toast -->
+    <div class="at hidden" id="arrToast">
+        <div style="font-size:28px">🚌</div>
+        <div class="atco"><strong id="atTitle">Bus Arriving!</strong>
+            <p id="atMsg">Bus arriving in 1 minute</p>
+        </div>
+        <button class="atcl" onclick="closeToast()">✕</button>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        /* ══════════════════════════════════
+           SHARED UTILITIES
+        ══════════════════════════════════ */
+        function getSession() { const r = sessionStorage.getItem('bustrack_user'); return r ? JSON.parse(r) : null }
+        function requireAuth(role) {
+            const s = getSession();
+            if (!s) { window.location.href = 'index.html'; return null }
+            if (s.role !== role) { window.location.href = 'index.html'; return null }
+            return s;
+        }
+        function logout() { sessionStorage.removeItem('bustrack_user'); showToast('👋 Logged out!'); setTimeout(() => { window.location.href = 'index.html' }, 600) }
+        function showToast(msg, d = 2800) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), d) }
+        function toggleTheme() {
+            const b = document.getElementById('body'); const d = b.classList.toggle('dark');
+            localStorage.setItem('bustrack_theme', d ? 'dark' : 'light');
+            document.getElementById('themeBtn').textContent = d ? '☀️' : '🌙';
+            showToast(d ? '🌙 Dark mode on' : '☀️ Light mode on');
+        }
+        function applySavedTheme() {
+            const t = localStorage.getItem('bustrack_theme');
+            if (t === 'dark') { document.getElementById('body').classList.add('dark'); const b = document.getElementById('themeBtn'); if (b) b.textContent = '☀️'; }
+        }
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar'), mc = document.getElementById('mainContent');
+            if (window.innerWidth <= 768) { sb.classList.toggle('mob'); return }
+            sb.classList.toggle('collapsed'); if (mc) mc.classList.toggle('exp');
+        }
+        function fmtTime(d = new Date()) { return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) }
+        function setText(id, v) { const e = document.getElementById(id); if (e) e.textContent = v }
+        function showSec(name) {
+            document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+            const s = document.getElementById('sec-' + name); if (s) s.classList.add('active');
+            const n = document.getElementById('nav-' + name); if (n) n.classList.add('active');
+            const titles = { map: ['Live Map', 'Real-time bus tracking'], route: ['My Route', 'Route details & stops'], notifications: ['Notifications', 'Alerts & messages'], schedule: ['Schedule', 'Weekly timetable'] };
+            const pt = document.getElementById('pageTitle');
+            if (pt && titles[name]) { pt.querySelector('h2').textContent = titles[name][0]; pt.querySelector('p').textContent = titles[name][1] }
+            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mob');
+        }
+
+        /* ══════════════════════════════════
+           STUDENT DATA
+        ══════════════════════════════════ */
+        const ROUTES = {
+            'B-101': {
+                busNumber: 'B-101', driver: 'Ramesh Nair', route: 'Route C – South Campus', stops: [
+                    { id: 1, name: 'College Main Gate', lat: 13.0827, lng: 80.2707, time: '7:00 AM' },
+                    { id: 2, name: 'Anna Nagar Roundtana', lat: 13.0850, lng: 80.2150, time: '7:15 AM' },
+                    { id: 3, name: 'Koyambedu Bus Stand', lat: 13.0694, lng: 80.1949, time: '7:28 AM' },
+                    { id: 4, name: 'Vadapalani Signal', lat: 13.0526, lng: 80.2127, time: '7:40 AM' },
+                    { id: 5, name: 'Ashok Nagar', lat: 13.0380, lng: 80.2194, time: '7:52 AM' },
+                    { id: 6, name: 'Tambaram Depot', lat: 12.9249, lng: 80.1000, time: '8:20 AM' },
+                ]
+            },
+            'B-102': {
+                busNumber: 'B-102', driver: 'Rajesh Kumar', route: 'Route A – City Express', stops: [
+                    { id: 1, name: 'College Main Gate', lat: 13.0827, lng: 80.2707, time: '7:00 AM' },
+                    { id: 2, name: 'T. Nagar Bus Stop', lat: 13.0418, lng: 80.2341, time: '7:18 AM' },
+                    { id: 3, name: 'Adyar Signal', lat: 13.0012, lng: 80.2565, time: '7:33 AM' },
+                    { id: 4, name: 'Main Gate (Pick)', lat: 12.9716, lng: 80.2209, time: '7:48 AM' },
+                    { id: 5, name: 'Perungudi Stop', lat: 12.9568, lng: 80.2398, time: '8:05 AM' },
+                    { id: 6, name: 'Sholinganallur', lat: 12.9010, lng: 80.2279, time: '8:22 AM' },
+                    { id: 7, name: 'OMR Terminus', lat: 12.8630, lng: 80.2270, time: '8:40 AM' },
+                ]
+            },
+            'B-103': {
+                busNumber: 'B-103', driver: 'Mohan Das', route: 'Route B – North Link', stops: [
+                    { id: 1, name: 'College Main Gate', lat: 13.0827, lng: 80.2707, time: '7:00 AM' },
+                    { id: 2, name: 'Padi Interchange', lat: 13.1195, lng: 80.2192, time: '7:20 AM' },
+                    { id: 3, name: 'Ambattur Estate', lat: 13.1152, lng: 80.1553, time: '7:40 AM' },
+                    { id: 4, name: 'Avadi Station', lat: 13.1048, lng: 80.1007, time: '7:55 AM' },
+                    { id: 5, name: 'Tiruvallur Stop', lat: 13.1439, lng: 79.9080, time: '8:25 AM' },
+                ]
+            },
+        };
+
+        const session = requireAuth('student');
+        if (session) {
+            setText('sName', session.name); setText('tName', session.name);
+        }
+
+        const myBusId = session?.busId || 'B-102';
+        const myStopId = session?.stopId || 4;
+        const busData = ROUTES[myBusId];
+        const stops = busData.stops;
+
+        /* ══════════════════════════════════
+           LEAFLET MAP
+        ══════════════════════════════════ */
+        let map = null, busMk = null, satellite = false, tileLyr = null;
+        const TILES = {
+            street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            sat: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        };
+
+        function initMap() {
+            if (map) return;
+            document.getElementById('mapLoading').style.display = 'none';
+            map = L.map('studentMap', { zoomControl: true, scrollWheelZoom: true }).setView([stops[0].lat, stops[0].lng], 13);
+            tileLyr = L.tileLayer(TILES.street, { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+            L.polyline(stops.map(s => [s.lat, s.lng]), { color: '#6C63FF', weight: 4, opacity: .7, dashArray: '6,4' }).addTo(map);
+            stops.forEach((s, i) => {
+                const isY = s.id === myStopId, isF = i === 0;
+                const ico = L.divIcon({ html: `<div style="font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))">${isF ? '🏫' : isY ? '⭐' : '📍'}</div>`, className: '', iconAnchor: [11, 22] });
+                L.marker([s.lat, s.lng], { icon: ico }).bindPopup(`<strong>${s.name}</strong><br>${isY ? '<span style="color:#6C63FF;font-weight:700">⭐ Your Stop</span><br>' : ''}Scheduled: ${s.time}`).addTo(map);
+            });
+            const bIco = L.divIcon({ html: `<div id="busIconEl" style="font-size:28px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4))">🚌</div>`, className: '', iconAnchor: [16, 24] });
+            busMk = L.marker([stops[0].lat, stops[0].lng], { icon: bIco, zIndexOffset: 1000 }).bindPopup(`<strong>${busData.busNumber}</strong><br>Driver: ${busData.driver}`).addTo(map);
+        }
+
+        /* ══════════════════════════════════
+           BUS SIMULATION
+        ══════════════════════════════════ */
+        let curIdx = 0, prog = 0;
+
+        function simStep() {
+            prog += 0.12;
+            if (prog >= 1) { prog = 0; curIdx = (curIdx + 1) % stops.length; }
+            const c = stops[curIdx], n = stops[(curIdx + 1) % stops.length];
+            const lat = c.lat + (n.lat - c.lat) * prog;
+            const lng = c.lng + (n.lng - c.lng) * prog;
+            if (busMk) busMk.setLatLng([lat, lng]);
+            updateStatus(c); updateETA(); checkAlert(n);
+        }
+        function updateStatus(c) {
+            const spd = busData.speed || (35) + Math.floor(Math.random() * 10 - 5);
+            setText('busSpeed', spd + ' km/h'); setText('curStop', c.name);
+            setText('stopsRem', stops.length - curIdx - 1); setText('lastUpd', fmtTime());
+            if (!busData.speed) busData.speed = 35;
+        }
+        function updateETA() {
+            const myS = stops.find(s => s.id === myStopId); if (!myS) return;
+            const myI = stops.indexOf(myS), left = myI - curIdx;
+            if (left <= 0) { setText('etaVal', 'At stop'); setText('etaBadge', 'Arrived ✅'); return }
+            const mins = Math.max(1, Math.round(left * 6 - prog * 6));
+            setText('etaVal', mins); setText('etaBadge', mins + ' min');
+            const pct = Math.round((1 - left / stops.length) * 100);
+            const bar = document.getElementById('etaBar'); if (bar) bar.style.width = Math.min(pct, 100) + '%';
+            const nxt = stops[curIdx + 1];
+            setText('nextStop', nxt ? nxt.name : '--'); setText('yourStop', myS.name);
+        }
+        let alertFired = false;
+        function checkAlert(nextS) {
+            const myS = stops.find(s => s.id === myStopId); if (!myS) return;
+            const myI = stops.indexOf(myS), away = myI - curIdx;
+            if (away === 1 && prog > 0.7 && !alertFired) { alertFired = true; triggerAlert(myS.name); setTimeout(() => { alertFired = false }, 30000) }
+        }
+        function triggerAlert(stop) {
+            const ae = document.getElementById('arrAlert'), am = document.getElementById('alertMsg');
+            if (ae) ae.classList.remove('hidden'); if (am) am.textContent = `🚌 Bus arriving in ~1 minute at ${stop}`;
+            const at = document.getElementById('arrToast');
+            document.getElementById('atTitle').textContent = 'Bus Arriving!';
+            document.getElementById('atMsg').textContent = `${busData.busNumber} arriving in ~1 min at ${stop}`;
+            if (at) { at.classList.remove('hidden'); at.classList.add('show') }
+            addNotif('🚨', 'Bus Arriving Soon!', `${busData.busNumber} is ~1 min from ${stop}.`);
+        }
+        function closeToast() { const t = document.getElementById('arrToast'); t.classList.remove('show'); setTimeout(() => t.classList.add('hidden'), 400) }
+
+        /* ══════════════════════════════════
+           NOTIFICATIONS
+        ══════════════════════════════════ */
+        let notifs = [], nc = 0;
+        function addNotif(icon, title, msg) {
+            nc++; notifs.unshift({ icon, title, msg, time: fmtTime(), id: nc }); renderNotifs(); updateBadge();
+        }
+        function renderNotifs() {
+            const l = document.getElementById('notifList'); if (!l) return;
+            if (!notifs.length) { l.innerHTML = '<div class="ne">No notifications yet.</div>'; return }
+            l.innerHTML = notifs.map(n => `<div class="ni-item"><div class="nii">${n.icon}</div><div class="nib"><div class="nit">${n.title}</div><div class="nim">${n.msg}</div><div class="nitime">${n.time}</div></div></div>`).join('');
+        }
+        function clearNotifs() { notifs = []; nc = 0; renderNotifs(); updateBadge() }
+        function updateBadge() { setText('notifBadge', nc); setText('bellBadge', nc) }
+
+        /* ══════════════════════════════════
+           STOP TIMELINE
+        ══════════════════════════════════ */
+        function buildTimeline() {
+            const c = document.getElementById('stopTimeline'); if (!c) return;
+            const myS = stops.find(s => s.id === myStopId);
+            c.innerHTML = stops.map((s, i) => {
+                const isY = s.id === myStopId, isPassed = i < curIdx, isUp = i === curIdx + 1;
+                let cls = '', tag = '', dot = '⬛';
+                if (i === 0) dot = '🏫';
+                if (isY) { cls = 'your-stop'; tag += '<span class="stag tag-y">⭐ Your Stop</span>'; dot = '⭐' }
+                if (isPassed) { cls = 'passed'; tag += '<span class="stag tag-p">✅ Passed</span>'; dot = '✅' }
+                if (isUp) { cls += ' upcoming'; tag += '<span class="stag tag-u">🔸 Upcoming</span>'; dot = '🔸' }
+                return `<div class="sti ${cls}"><div class="std">${dot}</div><div class="stinfo"><div class="stn">${s.name}</div><div class="stt">⏰ ${s.time}</div>${tag}</div></div>`;
+            }).join('');
+        }
+
+        /* ══════════════════════════════════
+           SCHEDULE
+        ══════════════════════════════════ */
+        function buildSchedule() {
+            const g = document.getElementById('schedGrid'); if (!g) return;
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            g.innerHTML = days.map(d => `<div class="sday"><div class="sdh ${d === today ? 'today' : ''}">${d}</div><div class="ss"><strong>Morning Pickup</strong>7:00 AM – ${busData.busNumber}</div><div class="ss"><strong>Arrival</strong>8:30 AM</div><div class="ss"><strong>Evening Drop</strong>5:30 PM</div></div>`).join('');
+        }
+
+        /* ══════════════════════════════════
+           MAP CONTROLS
+        ══════════════════════════════════ */
+        function recenterMap() { if (map && busMk) map.setView(busMk.getLatLng(), 14, { animate: true }) }
+        function toggleMapStyle() { if (!map) return; satellite = !satellite; tileLyr.setUrl(satellite ? TILES.sat : TILES.street); showToast(satellite ? '🛰️ Satellite view' : '🗺️ Street view') }
+
+        /* ══════════════════════════════════
+           FILL STATIC INFO
+        ══════════════════════════════════ */
+        function fillInfo() {
+            setText('sBusNum', busData.busNumber); setText('sDriver', busData.driver);
+            setText('sRoute', busData.route); setText('routeName', busData.route);
+            setText('rsBusNum', busData.busNumber); setText('rsDriver', busData.driver);
+            setText('totalStops', stops.length);
+        }
+
+        /* ══════════════════════════════════
+           INIT
+        ══════════════════════════════════ */
+        document.addEventListener('DOMContentLoaded', () => {
+            applySavedTheme();
+            if (!session) return;
+            fillInfo(); buildTimeline(); buildSchedule();
+            setTimeout(initMap, 200);
+            setInterval(simStep, 2000);
+            addNotif('ℹ️', 'Tracking Started', `Now tracking ${busData.busNumber} on ${busData.route}.`);
+            addNotif('🚌', 'Bus Info', `Driver: ${busData.driver} | ${stops.length} stops on route.`);
+            setTimeout(() => addNotif('📢', 'Admin Notice', 'Route A morning pickup at 7:00 AM sharp.'), 4000);
+            setTimeout(() => addNotif('⚠️', 'Traffic Alert', 'Slight delay on T. Nagar stretch. ETA updated.'), 10000);
+        });
+    </script>
+</body>
+
+</html>

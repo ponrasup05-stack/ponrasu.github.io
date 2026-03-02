@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Admin Dashboard – BusTrack Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --p: #6C63FF;
+            --pd: #504CCF;
+            --s: #11D3BC;
+            --a: #FF6B6B;
+            --w: #FFD166;
+            --ok: #06D6A0;
+            --ng: #EF233C;
+            --inf: #4CC9F0;
+            --pu: #9B5DE5;
+            --bg: #F0F2F8;
+            --card: #fff;
+            --sb: #1A1C2E;
+            --tx: #1A1C2E;
+            --ts: #6B7280;
+            --tm: #9CA3AF;
+            --bd: #E5E7EB;
+            --bdl: #F3F4F6;
+            --sh: 0 4px 24px rgba(108, 99, 255, .08);
+            --sh2: 0 8px 32px rgba(108, 99, 255, .18);
+            --r: 8px;
+            --rm: 12px;
+            --rl: 20px;
+            --rx: 28px;
+            --tr: .25s cubic-bezier(.4, 0, .2, 1);
+            --f: 'Inter', -apple-system, sans-serif
+        }
+
+        body.dark {
+            --bg: #0F1117;
+            --card: #1A1C2E;
+            --sb: #0A0B14;
+            --tx: #F1F5F9;
+            --ts: #94A3B8;
+            --tm: #64748B;
+            --bd: #2D3148;
+            --bdl: #1E2035;
+            --sh: 0 4px 24px rgba(0, 0, 0, .4)
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: var(--f);
+            background: var(--bg);
+            color: var(--tx);
+            display: flex;
+            min-height: 100vh;
+            transition: background var(--tr), color var(--tr)
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit
+        }
+
+        button {
+            cursor: pointer;
+            font-family: var(--f)
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: var(--f);
+            outline: none
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        /* SIDEBAR */
+        .sb {
+            width: 260px;
+            min-height: 100vh;
+            background: var(--sb);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, .2);
+            transition: width var(--tr)
+        }
+
+        .sb.col {
+            width: 72px
+        }
+
+        .sb.col .nl,
+        .sb.col .sbt,
+        .sb.col .sbs,
+        .sb.col .sbb,
+        .sb.col .ud,
+        .sb.col .blo {
+            display: none
+        }
+
+        .sb.col .sh {
+            justify-content: center
+        }
+
+        .sb.col .ni {
+            justify-content: center;
+            padding: 14px
+        }
+
+        .sb.col .ui {
+            justify-content: center
+        }
+
+        .sh {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, .06)
+        }
+
+        .slo {
+            font-size: 28px;
+            flex-shrink: 0
+        }
+
+        .sbb {
+            flex: 1
+        }
+
+        .sbt {
+            display: block;
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff
+        }
+
+        .sbs {
+            font-size: 11px;
+            color: var(--w);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        .stg {
+            background: none;
+            border: none;
+            color: #CBD5E1;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all var(--tr);
+            flex-shrink: 0
+        }
+
+        .stg:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, .08)
+        }
+
+        .snav {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto
+        }
+
+        .ni {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--rm);
+            color: #CBD5E1;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all var(--tr)
+        }
+
+        .ni:hover {
+            background: rgba(255, 255, 255, .08);
+            color: #fff
+        }
+
+        .ni.active {
+            background: var(--w);
+            color: #1a1c2e;
+            box-shadow: 0 4px 14px rgba(255, 209, 102, .4)
+        }
+
+        .nic {
+            font-size: 18px;
+            flex-shrink: 0
+        }
+
+        .nl {
+            flex: 1
+        }
+
+        .sf {
+            padding: 16px 12px;
+            border-top: 1px solid rgba(255, 255, 255, .06);
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .ui {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .ua {
+            width: 36px;
+            height: 36px;
+            background: var(--w);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0
+        }
+
+        .ud {
+            display: flex;
+            flex-direction: column
+        }
+
+        .un {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff
+        }
+
+        .ur {
+            font-size: 11px;
+            color: var(--w);
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        .blo {
+            width: 100%;
+            padding: 10px;
+            background: rgba(239, 35, 60, .15);
+            border: 1px solid rgba(239, 35, 60, .3);
+            border-radius: var(--r);
+            color: #ff6b6b;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all var(--tr);
+            text-align: center
+        }
+
+        .blo:hover {
+            background: var(--ng);
+            color: #fff
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left var(--tr)
+        }
+
+        .main.exp {
+            margin-left: 72px
+        }
+
+        /* TOPBAR */
+        .tb {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            height: 68px;
+            background: var(--card);
+            border-bottom: 1px solid var(--bd);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .05)
+        }
+
+        .tl {
+            display: flex;
+            align-items: center;
+            gap: 16px
+        }
+
+        .mmb {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: var(--ts)
+        }
+
+        .pt h2 {
+            font-size: 18px;
+            font-weight: 700
+        }
+
+        .pt p {
+            font-size: 12px;
+            color: var(--tm)
+        }
+
+        .tr2 {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .tbtn {
+            background: var(--bg);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 8px 12px;
+            font-size: 18px;
+            color: var(--ts);
+            transition: all var(--tr)
+        }
+
+        .tbtn:hover {
+            background: var(--p);
+            color: #fff;
+            border-color: var(--p)
+        }
+
+        .ls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ok);
+            background: rgba(6, 214, 160, .1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(6, 214, 160, .3)
+        }
+
+        .ld {
+            width: 8px;
+            height: 8px;
+            background: var(--w);
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.5s infinite ease-in-out
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: .5;
+                transform: scale(1.15)
+            }
+        }
+
+        .tu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg);
+            border-radius: var(--r);
+            border: 1px solid var(--bd)
+        }
+
+        /* SECTIONS */
+        .sec {
+            display: none;
+            padding: 28px;
+            animation: fs .3s ease
+        }
+
+        .sec.active {
+            display: block
+        }
+
+        @keyframes fs {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* STAT CARDS */
+        .sg {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 24px
+        }
+
+        .asc {
+            background: var(--card);
+            border-radius: var(--rm);
+            padding: 20px 18px;
+            border: 1px solid var(--bd);
+            box-shadow: var(--sh);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--tr)
+        }
+
+        .asc::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%
+        }
+
+        .asc.c1::before {
+            background: var(--p)
+        }
+
+        .asc.c2::before {
+            background: var(--ok)
+        }
+
+        .asc.c3::before {
+            background: var(--inf)
+        }
+
+        .asc.c4::before {
+            background: var(--w)
+        }
+
+        .asc.c5::before {
+            background: var(--pu)
+        }
+
+        .asc.c6::before {
+            background: var(--ng)
+        }
+
+        .asc:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--sh2)
+        }
+
+        .asci {
+            font-size: 24px
+        }
+
+        .ascv {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--tx)
+        }
+
+        .ascl {
+            font-size: 12px;
+            color: var(--tm)
+        }
+
+        .asct {
+            font-size: 11px;
+            color: var(--tm)
+        }
+
+        .asct.up {
+            color: var(--ok)
+        }
+
+        .asct.dn {
+            color: var(--ng)
+        }
+
+        /* OVERVIEW ROW */
+        .or {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            align-items: start
+        }
+
+        /* SECTION CARD */
+        .sc {
+            background: var(--card);
+            border-radius: var(--rl);
+            border: 1px solid var(--bd);
+            box-shadow: var(--sh);
+            overflow: hidden;
+            margin-bottom: 16px
+        }
+
+        .sch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--bd)
+        }
+
+        .sch h3 {
+            font-size: 16px;
+            font-weight: 700
+        }
+
+        /* TABLE */
+        .tw {
+            overflow-x: auto;
+            padding: 4px
+        }
+
+        .at {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px
+        }
+
+        .at th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--tm);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--bd)
+        }
+
+        .at td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--bdl);
+            vertical-align: middle
+        }
+
+        .at tr:hover td {
+            background: rgba(108, 99, 255, .04)
+        }
+
+        .at tr:last-child td {
+            border-bottom: none
+        }
+
+        .sb2 {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700
+        }
+
+        .sa {
+            background: rgba(6, 214, 160, .15);
+            color: var(--ok)
+        }
+
+        .si {
+            background: rgba(239, 35, 60, .12);
+            color: var(--ng)
+        }
+
+        .sm {
+            background: rgba(255, 209, 102, .15);
+            color: #d4940c
+        }
+
+        .ab {
+            display: flex;
+            gap: 6px
+        }
+
+        .be {
+            background: rgba(108, 99, 255, .1);
+            color: var(--p);
+            border: none;
+            border-radius: var(--r);
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all var(--tr)
+        }
+
+        .be:hover {
+            background: var(--p);
+            color: #fff
+        }
+
+        .bd2 {
+            background: rgba(239, 35, 60, .1);
+            color: var(--ng);
+            border: none;
+            border-radius: var(--r);
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all var(--tr)
+        }
+
+        .bd2:hover {
+            background: var(--ng);
+            color: #fff
+        }
+
+        /* ACTIVITY */
+        .al {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 360px;
+            overflow-y: auto
+        }
+
+        .ai2 {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            border-radius: var(--r);
+            background: var(--bg);
+            font-size: 12px;
+            border-left: 3px solid var(--bd);
+            animation: fi .3s ease
+        }
+
+        @keyframes fi {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .ai2:hover {
+            border-left-color: var(--p)
+        }
+
+        .ait {
+            flex: 1;
+            color: var(--ts)
+        }
+
+        .ait strong {
+            color: var(--tx)
+        }
+
+        .aim {
+            font-size: 11px;
+            color: var(--tm);
+            flex-shrink: 0
+        }
+
+        /* MAP */
+        .mc2 {
+            background: var(--card);
+            border-radius: var(--rl);
+            border: 1px solid var(--bd);
+            overflow: hidden;
+            box-shadow: var(--sh);
+            margin-bottom: 16px
+        }
+
+        .mh {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--bd);
+            font-weight: 600;
+            font-size: 14px
+        }
+
+        .mad {
+            display: flex;
+            gap: 8px
+        }
+
+        .mb2 {
+            background: var(--bg);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 6px 10px;
+            font-size: 14px;
+            transition: all var(--tr)
+        }
+
+        .mb2:hover {
+            background: var(--p);
+            color: #fff;
+            border-color: var(--p)
+        }
+
+        .ml2 {
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: var(--tm);
+            font-size: 14px
+        }
+
+        .spn {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(108, 99, 255, .2);
+            border-top-color: var(--p);
+            border-radius: 50%;
+            animation: spin .8s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* BUS LIVE CARDS */
+        .bcr {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 14px;
+            margin-top: 16px
+        }
+
+        .bc {
+            background: var(--card);
+            border-radius: var(--rm);
+            padding: 16px;
+            border: 1px solid var(--bd);
+            box-shadow: var(--sh);
+            transition: all var(--tr)
+        }
+
+        .bc:hover {
+            border-color: var(--p);
+            transform: translateY(-2px)
+        }
+
+        .bch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px
+        }
+
+        .bcn {
+            font-size: 16px;
+            font-weight: 800
+        }
+
+        .bcs {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px
+        }
+
+        .bcs.on {
+            background: rgba(6, 214, 160, .15);
+            color: var(--ok)
+        }
+
+        .bci {
+            font-size: 13px;
+            color: var(--ts);
+            line-height: 1.7
+        }
+
+        .bci strong {
+            color: var(--tx)
+        }
+
+        .bcsp {
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--p)
+        }
+
+        .bcsp span {
+            font-size: 12px;
+            color: var(--tm);
+            font-weight: 400
+        }
+
+        /* ROUTES */
+        .rg {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 16px;
+            padding: 24px
+        }
+
+        .rc {
+            background: var(--bg);
+            border-radius: var(--rm);
+            border: 1px solid var(--bd);
+            padding: 20px;
+            transition: all var(--tr)
+        }
+
+        .rc:hover {
+            border-color: var(--p);
+            transform: translateY(-2px);
+            box-shadow: var(--sh2)
+        }
+
+        .rch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px
+        }
+
+        .rcn {
+            font-size: 16px;
+            font-weight: 700
+        }
+
+        .rcc {
+            background: rgba(108, 99, 255, .1);
+            color: var(--p);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600
+        }
+
+        .rcd {
+            font-size: 13px;
+            color: var(--tm);
+            margin-bottom: 14px
+        }
+
+        .rcs {
+            display: flex;
+            flex-direction: column;
+            gap: 4px
+        }
+
+        .rcsi {
+            font-size: 13px;
+            color: var(--ts);
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .rcsi::before {
+            content: '•';
+            color: var(--p);
+            font-size: 18px
+        }
+
+        .rca {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px
+        }
+
+        /* BROADCAST */
+        .bl {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px
+        }
+
+        .fg {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px
+        }
+
+        .fg label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ts)
+        }
+
+        .fi2 {
+            padding: 10px 14px;
+            border: 1.5px solid var(--bd);
+            border-radius: var(--r);
+            background: var(--bg);
+            color: var(--tx);
+            font-size: 14px;
+            width: 100%;
+            transition: all var(--tr)
+        }
+
+        .fi2:focus {
+            border-color: var(--p);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, .15)
+        }
+
+        .ta {
+            padding: 10px 14px;
+            border: 1.5px solid var(--bd);
+            border-radius: var(--r);
+            background: var(--bg);
+            color: var(--tx);
+            font-size: 14px;
+            width: 100%;
+            resize: vertical;
+            transition: all var(--tr)
+        }
+
+        .ta:focus {
+            border-color: var(--p);
+            outline: none
+        }
+
+        .bcast-log {
+            padding: 12px;
+            max-height: 500px;
+            overflow-y: auto
+        }
+
+        .bli {
+            padding: 14px;
+            border-radius: var(--rm);
+            border: 1px solid var(--bd);
+            background: var(--bg);
+            margin-bottom: 8px;
+            animation: fi .3s ease
+        }
+
+        .blmeta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px
+        }
+
+        .blt {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 10px
+        }
+
+        .bt-info {
+            background: rgba(76, 201, 240, .15);
+            color: var(--inf)
+        }
+
+        .bt-alert {
+            background: rgba(255, 107, 107, .15);
+            color: var(--a)
+        }
+
+        .bt-arrival {
+            background: rgba(6, 214, 160, .15);
+            color: var(--ok)
+        }
+
+        .bt-delay {
+            background: rgba(255, 209, 102, .15);
+            color: #d4940c
+        }
+
+        .bltm {
+            font-size: 11px;
+            color: var(--tm)
+        }
+
+        .blti {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px
+        }
+
+        .blm {
+            font-size: 13px;
+            color: var(--ts)
+        }
+
+        .bltg {
+            font-size: 11px;
+            color: var(--tm);
+            margin-top: 6px
+        }
+
+        /* STUDENTS */
+        .sw {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        /* MODAL */
+        .mo {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fi .2s ease
+        }
+
+        .md {
+            background: var(--card);
+            border-radius: var(--rx);
+            width: min(480px, 95vw);
+            border: 1px solid var(--bd);
+            box-shadow: 0 32px 80px rgba(0, 0, 0, .3);
+            animation: su .3s ease;
+            overflow: hidden
+        }
+
+        @keyframes su {
+            from {
+                opacity: 0;
+                transform: translateY(40px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .mdh {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--bd)
+        }
+
+        .mdh h3 {
+            font-size: 17px;
+            font-weight: 700
+        }
+
+        .mdc {
+            background: var(--bg);
+            border: 1px solid var(--bd);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+            transition: all var(--tr)
+        }
+
+        .mdc:hover {
+            background: var(--ng);
+            color: #fff;
+            border-color: var(--ng)
+        }
+
+        .mdb {
+            padding: 24px;
+            max-height: 60vh;
+            overflow-y: auto
+        }
+
+        .mdf {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--bd)
+        }
+
+        /* BTNS */
+        .btn-p {
+            background: linear-gradient(135deg, var(--p), var(--pd));
+            color: #fff;
+            border: none;
+            border-radius: var(--r);
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all var(--tr);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, .3)
+        }
+
+        .btn-p:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(108, 99, 255, .4)
+        }
+
+        .btn-p.fw {
+            width: 100%;
+            margin: 0 0 24px
+        }
+
+        .btn-s {
+            background: var(--bg);
+            color: var(--ts);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all var(--tr)
+        }
+
+        .btn-s:hover {
+            background: var(--bd)
+        }
+
+        .btn-clr {
+            background: none;
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 6px 14px;
+            font-size: 13px;
+            color: var(--tm);
+            transition: all var(--tr)
+        }
+
+        .btn-clr:hover {
+            background: var(--ng);
+            color: #fff;
+            border-color: var(--ng)
+        }
+
+        .ne {
+            padding: 40px;
+            text-align: center;
+            color: var(--tm);
+            font-size: 14px
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1A1C2E;
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: var(--rm);
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: all .3s ease;
+            pointer-events: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .3);
+            max-width: 320px
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        /* RESPONSIVE */
+        @media(max-width:1300px) {
+            .sg {
+                grid-template-columns: repeat(3, 1fr)
+            }
+
+            .or {
+                grid-template-columns: 1fr
+            }
+        }
+
+        @media(max-width:900px) {
+            .sg {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .bl {
+                grid-template-columns: 1fr
+            }
+        }
+
+        @media(max-width:768px) {
+            .sb {
+                transform: translateX(-260px)
+            }
+
+            .sb.mob {
+                transform: translateX(0)
+            }
+
+            .main {
+                margin-left: 0 !important
+            }
+
+            .mmb {
+                display: block
+            }
+
+            .sec {
+                padding: 16px
+            }
+
+            .sg {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+    </style>
+</head>
+
+<body id="body">
+
+    <!-- SIDEBAR -->
+    <aside class="sb" id="sidebar">
+        <div class="sh">
+            <div class="slo">🛡️</div>
+            <div class="sbb"><span class="sbt">BusTrack</span><span class="sbs">Admin</span></div>
+            <button class="stg" onclick="toggleSidebar()">☰</button>
+        </div>
+        <nav class="snav">
+            <a class="ni active" id="nav-overview" href="#" onclick="go('overview')"><span class="nic">📊</span><span
+                    class="nl">Overview</span></a>
+            <a class="ni" id="nav-livetrack" href="#" onclick="go('livetrack')"><span class="nic">🗺️</span><span
+                    class="nl">Live Tracking</span></a>
+            <a class="ni" id="nav-buses" href="#" onclick="go('buses')"><span class="nic">🚌</span><span
+                    class="nl">Buses</span></a>
+            <a class="ni" id="nav-drivers" href="#" onclick="go('drivers')"><span class="nic">👨‍✈️</span><span
+                    class="nl">Drivers</span></a>
+            <a class="ni" id="nav-routes" href="#" onclick="go('routes')"><span class="nic">🛣️</span><span
+                    class="nl">Routes</span></a>
+            <a class="ni" id="nav-broadcast" href="#" onclick="go('broadcast')"><span class="nic">📢</span><span
+                    class="nl">Broadcast</span></a>
+            <a class="ni" id="nav-students" href="#" onclick="go('students')"><span class="nic">🎓</span><span
+                    class="nl">Students</span></a>
+        </nav>
+        <div class="sf">
+            <div class="ui">
+                <div class="ua">🛡️</div>
+                <div class="ud"><span class="un">Admin User</span><span class="ur">Administrator</span></div>
+            </div>
+            <button class="blo" onclick="logout()">🚪 Logout</button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main" id="mainContent">
+        <header class="tb">
+            <div class="tl">
+                <button class="mmb" onclick="toggleSidebar()">☰</button>
+                <div class="pt" id="pageTitle">
+                    <h2>Overview</h2>
+                    <p>System dashboard</p>
+                </div>
+            </div>
+            <div class="tr2">
+                <button class="tbtn" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+                <div class="ls"><span class="ld"></span><span>Live</span></div>
+                <div class="tu"><span style="font-size:18px">🛡️</span><span
+                        style="font-size:13px;font-weight:600">Admin</span></div>
+            </div>
+        </header>
+
+        <!-- OVERVIEW -->
+        <section class="sec active" id="sec-overview">
+            <div class="sg">
+                <div class="asc c1">
+                    <div class="asci">🚌</div>
+                    <div class="ascv" id="cBus">6</div>
+                    <div class="ascl">Total Buses</div>
+                    <div class="asct up">↑ Active fleet</div>
+                </div>
+                <div class="asc c2">
+                    <div class="asci">🟢</div>
+                    <div class="ascv" id="cAct">5</div>
+                    <div class="ascl">Active Now</div>
+                    <div class="asct up">On route</div>
+                </div>
+                <div class="asc c3">
+                    <div class="asci">👨‍✈️</div>
+                    <div class="ascv" id="cDrv">6</div>
+                    <div class="ascl">Drivers</div>
+                    <div class="asct">All available</div>
+                </div>
+                <div class="asc c4">
+                    <div class="asci">🎓</div>
+                    <div class="ascv" id="cStu">342</div>
+                    <div class="ascl">Students</div>
+                    <div class="asct">Enrolled</div>
+                </div>
+                <div class="asc c5">
+                    <div class="asci">🛣️</div>
+                    <div class="ascv" id="cRt">4</div>
+                    <div class="ascl">Routes</div>
+                    <div class="asct up">Active</div>
+                </div>
+                <div class="asc c6">
+                    <div class="asci">⚠️</div>
+                    <div class="ascv" id="cAl">1</div>
+                    <div class="ascl">Alerts</div>
+                    <div class="asct dn">Attention</div>
+                </div>
+            </div>
+            <div class="or">
+                <div class="sc">
+                    <div class="sch">
+                        <h3>🚌 Bus Status Overview</h3><span style="font-size:12px;color:var(--tm)" id="rT">Updated
+                            now</span>
+                    </div>
+                    <div class="tw">
+                        <table class="at">
+                            <thead>
+                                <tr>
+                                    <th>Bus</th>
+                                    <th>Driver</th>
+                                    <th>Route</th>
+                                    <th>Speed</th>
+                                    <th>Status</th>
+                                    <th>Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ovTb"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="sc" style="overflow:hidden">
+                    <div class="sch">
+                        <h3>📋 Activity Log</h3>
+                    </div>
+                    <div class="al" id="actList"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LIVE TRACKING -->
+        <section class="sec" id="sec-livetrack">
+            <div class="mc2">
+                <div class="mh"><span>🗺️ Live Tracking – All Buses</span>
+                    <div class="mad"><button class="mb2" onclick="fitMap()">🎯 Fit All</button></div>
+                </div>
+                <div class="ml2" id="aMapLoad">
+                    <div class="spn"></div>
+                    <p>Loading live tracking...</p>
+                </div>
+                <div id="adminMap" style="height:520px;width:100%"></div>
+            </div>
+            <div class="bcr" id="liveBusCards"></div>
+        </section>
+
+        <!-- BUSES -->
+        <section class="sec" id="sec-buses">
+            <div class="sc">
+                <div class="sch">
+                    <h3>🚌 Manage Buses</h3><button class="btn-p" onclick="openMod('modBus')">+ Add Bus</button>
+                </div>
+                <div class="tw">
+                    <table class="at">
+                        <thead>
+                            <tr>
+                                <th>Bus #</th>
+                                <th>Model</th>
+                                <th>Driver</th>
+                                <th>Route</th>
+                                <th>Cap</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="busTb"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- DRIVERS -->
+        <section class="sec" id="sec-drivers">
+            <div class="sc">
+                <div class="sch">
+                    <h3>👨‍✈️ Manage Drivers</h3><button class="btn-p" onclick="openMod('modDrv')">+ Add Driver</button>
+                </div>
+                <div class="tw">
+                    <table class="at">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Emp ID</th>
+                                <th>Contact</th>
+                                <th>License</th>
+                                <th>Bus</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drvTb"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ROUTES -->
+        <section class="sec" id="sec-routes">
+            <div class="sc">
+                <div class="sch">
+                    <h3>🛣️ Manage Routes</h3><button class="btn-p" onclick="openMod('modRt')">+ Add Route</button>
+                </div>
+                <div class="rg" id="rtGrid"></div>
+            </div>
+        </section>
+
+        <!-- BROADCAST -->
+        <section class="sec" id="sec-broadcast">
+            <div class="bl">
+                <div class="sc">
+                    <div class="sch">
+                        <h3>📢 Send Notification</h3>
+                    </div>
+                    <div style="padding:0 24px">
+                        <div class="fg"><label>Target</label><select class="fi2" id="bTgt">
+                                <option value="all">All Students</option>
+                                <option value="routeA">Route A</option>
+                                <option value="routeB">Route B</option>
+                                <option value="routeC">Route C</option>
+                                <option value="routeD">Route D</option>
+                            </select></div>
+                        <div class="fg"><label>Type</label><select class="fi2" id="bType">
+                                <option value="info">ℹ️ Info</option>
+                                <option value="alert">⚠️ Alert</option>
+                                <option value="arrival">🚌 Arrival</option>
+                                <option value="delay">⏰ Delay</option>
+                            </select></div>
+                        <div class="fg"><label>Title</label><input class="fi2" id="bTitle"
+                                placeholder="Notification title" /></div>
+                        <div class="fg"><label>Message</label><textarea class="ta" id="bMsg" rows="4"
+                                placeholder="Type your message..."></textarea></div>
+                    </div>
+                    <button class="btn-p fw" onclick="sendBcast()">📤 Send Notification</button>
+                </div>
+                <div class="sc">
+                    <div class="sch">
+                        <h3>📋 Sent Notifications</h3><button class="btn-clr" onclick="clearBlog()">Clear</button>
+                    </div>
+                    <div class="bcast-log" id="bLog">
+                        <div class="ne">No notifications sent yet.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDENTS -->
+        <section class="sec" id="sec-students">
+            <div class="sc">
+                <div class="sch">
+                    <h3>🎓 Student Management</h3>
+                    <div class="sw"><input class="fi2" id="stuSearch" placeholder="🔍 Search..." oninput="filterStu()"
+                            style="min-width:200px" /></div>
+                </div>
+                <div class="tw">
+                    <table class="at">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>ID</th>
+                                <th>Email</th>
+                                <th>Route</th>
+                                <th>Stop</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stuTb"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL: Add Bus -->
+    <div class="mo hidden" id="modBus">
+        <div class="md">
+            <div class="mdh">
+                <h3>🚌 Add New Bus</h3><button class="mdc" onclick="closeMod('modBus')">✕</button>
+            </div>
+            <div class="mdb">
+                <div class="fg"><label>Bus Number</label><input class="fi2" id="nBNum" placeholder="e.g. B-107" /></div>
+                <div class="fg"><label>Model</label><input class="fi2" id="nBMod" placeholder="e.g. Tata Starbus" />
+                </div>
+                <div class="fg"><label>Driver</label><select class="fi2" id="nBDrv">
+                        <option value="">Select Driver</option>
+                    </select></div>
+                <div class="fg"><label>Route</label><select class="fi2" id="nBRt">
+                        <option value="">Select Route</option>
+                    </select></div>
+                <div class="fg"><label>Capacity</label><input class="fi2" type="number" id="nBCap" placeholder="45" />
+                </div>
+            </div>
+            <div class="mdf"><button class="btn-s" onclick="closeMod('modBus')">Cancel</button><button class="btn-p"
+                    onclick="addBus()">Add Bus</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Driver -->
+    <div class="mo hidden" id="modDrv">
+        <div class="md">
+            <div class="mdh">
+                <h3>👨‍✈️ Add Driver</h3><button class="mdc" onclick="closeMod('modDrv')">✕</button>
+            </div>
+            <div class="mdb">
+                <div class="fg"><label>Full Name</label><input class="fi2" id="nDName"
+                        placeholder="e.g. Suresh Patel" /></div>
+                <div class="fg"><label>Employee ID</label><input class="fi2" id="nDId" placeholder="e.g. EMP-009" />
+                </div>
+                <div class="fg"><label>Contact</label><input class="fi2" id="nDCon" placeholder="+91 99999 00000" />
+                </div>
+                <div class="fg"><label>License</label><input class="fi2" id="nDLic" placeholder="DL-123456" /></div>
+            </div>
+            <div class="mdf"><button class="btn-s" onclick="closeMod('modDrv')">Cancel</button><button class="btn-p"
+                    onclick="addDriver()">Add Driver</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Route -->
+    <div class="mo hidden" id="modRt">
+        <div class="md">
+            <div class="mdh">
+                <h3>🛣️ Add Route</h3><button class="mdc" onclick="closeMod('modRt')">✕</button>
+            </div>
+            <div class="mdb">
+                <div class="fg"><label>Route Name</label><input class="fi2" id="nRN" placeholder="e.g. Route E" /></div>
+                <div class="fg"><label>Description</label><input class="fi2" id="nRD"
+                        placeholder="e.g. West Campus Express" /></div>
+                <div class="fg"><label>Stops (comma separated)</label><textarea class="ta" id="nRS" rows="3"
+                        placeholder="Stop 1, Stop 2, Stop 3"></textarea></div>
+            </div>
+            <div class="mdf"><button class="btn-s" onclick="closeMod('modRt')">Cancel</button><button class="btn-p"
+                    onclick="addRoute()">Add Route</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Edit Bus -->
+    <div class="mo hidden" id="modEdit">
+        <div class="md">
+            <div class="mdh">
+                <h3>✏️ Edit Bus</h3><button class="mdc" onclick="closeMod('modEdit')">✕</button>
+            </div>
+            <div class="mdb">
+                <input type="hidden" id="eIdx" />
+                <div class="fg"><label>Bus Number</label><input class="fi2" id="eBN" /></div>
+                <div class="fg"><label>Model</label><input class="fi2" id="eBM" /></div>
+                <div class="fg"><label>Capacity</label><input class="fi2" type="number" id="eBC" /></div>
+                <div class="fg"><label>Status</label><select class="fi2" id="eBS">
+                        <option>Active</option>
+                        <option>Inactive</option>
+                        <option>Maintenance</option>
+                    </select></div>
+            </div>
+            <div class="mdf"><button class="btn-s" onclick="closeMod('modEdit')">Cancel</button><button class="btn-p"
+                    onclick="saveEdit()">Save</button></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        /* ── AUTH ── */
+        function getSession() { const r = sessionStorage.getItem('bustrack_user'); return r ? JSON.parse(r) : null }
+        function requireAuth(role) { const s = getSession(); if (!s || s.role !== role) { window.location.href = 'index.html'; return null } return s }
+        requireAuth('admin');
+
+        /* ── UTILS ── */
+        function logout() { sessionStorage.removeItem('bustrack_user'); toast2('👋 Logged out!'); setTimeout(() => { window.location.href = 'index.html' }, 600) }
+        function toast2(msg, d = 2800) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), d) }
+        function toggleTheme() { const b = document.getElementById('body'); const dk = b.classList.toggle('dark'); localStorage.setItem('bustrack_theme', dk ? 'dark' : 'light'); document.getElementById('themeBtn').textContent = dk ? '☀️' : '🌙'; toast2(dk ? '🌙 Dark mode' : '☀️ Light mode') }
+        function applySavedTheme() { const t = localStorage.getItem('bustrack_theme'); if (t === 'dark') { document.getElementById('body').classList.add('dark'); const b = document.getElementById('themeBtn'); if (b) b.textContent = '☀️' } }
+        function toggleSidebar() { const sb = document.getElementById('sidebar'), mc = document.getElementById('mainContent'); if (window.innerWidth <= 768) { sb.classList.toggle('mob'); return } sb.classList.toggle('col'); if (mc) mc.classList.toggle('exp') }
+        function fmtTime(d = new Date()) { return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) }
+        function setText(id, v) { const e = document.getElementById(id); if (e) e.textContent = v }
+        function openMod(id) { document.getElementById(id).classList.remove('hidden'); popDrops() }
+        function closeMod(id) { document.getElementById(id).classList.add('hidden') }
+        document.addEventListener('click', e => { if (e.target.classList.contains('mo')) e.target.classList.add('hidden') })
+
+        /* ── SECTION NAV ── */
+        const titles = { overview: ['Overview', 'System dashboard'], livetrack: ['Live Tracking', 'All buses – real time'], buses: ['Manage Buses', 'Add, edit, delete buses'], drivers: ['Manage Drivers', 'Driver roster'], routes: ['Manage Routes', 'Routes & stops'], broadcast: ['Broadcast', 'Send notifications'], students: ['Students', 'Student management'] };
+        function go(name) {
+            document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+            const s = document.getElementById('sec-' + name); if (s) s.classList.add('active');
+            const n = document.getElementById('nav-' + name); if (n) n.classList.add('active');
+            const t = titles[name]; if (t) { const pt = document.getElementById('pageTitle'); pt.querySelector('h2').textContent = t[0]; pt.querySelector('p').textContent = t[1] }
+            if (name === 'livetrack' && !adminMap) setTimeout(initAdminMap, 200);
+            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mob');
+        }
+
+        /* ── DATA ── */
+        let buses = [
+            { id: 1, number: 'B-101', model: 'Tata Starbus Ultra', driver: 'Ramesh Nair', route: 'Route C', capacity: 45, status: 'Active', lat: 13.0827, lng: 80.2707, speed: 42 },
+            { id: 2, number: 'B-102', model: 'Ashok Leyland LYNX', driver: 'Rajesh Kumar', route: 'Route A', capacity: 45, status: 'Active', lat: 13.0418, lng: 80.2341, speed: 38 },
+            { id: 3, number: 'B-103', model: 'Tata Starbus Ultra', driver: 'Mohan Das', route: 'Route B', capacity: 40, status: 'Active', lat: 13.1195, lng: 80.2192, speed: 45 },
+            { id: 4, number: 'B-104', model: 'Volvo 9400', driver: 'Suresh Patel', route: 'Route D', capacity: 52, status: 'Active', lat: 12.9716, lng: 80.2209, speed: 33 },
+            { id: 5, number: 'B-105', model: 'Eicher Skyline Pro', driver: 'Anand Raj', route: 'Route A', capacity: 40, status: 'Maintenance', lat: 13.0526, lng: 80.2127, speed: 0 },
+            { id: 6, number: 'B-106', model: 'Mahindra Tourister', driver: 'Vikram Singh', route: 'Route C', capacity: 38, status: 'Active', lat: 13.0694, lng: 80.1949, speed: 29 },
+        ];
+        let drivers = [
+            { id: 1, name: 'Ramesh Nair', empId: 'EMP-001', contact: '+91 98765 43210', license: 'TN-123456', bus: 'B-101', status: 'Available' },
+            { id: 2, name: 'Rajesh Kumar', empId: 'EMP-002', contact: '+91 98765 43211', license: 'TN-234567', bus: 'B-102', status: 'Available' },
+            { id: 3, name: 'Mohan Das', empId: 'EMP-003', contact: '+91 98765 43212', license: 'TN-345678', bus: 'B-103', status: 'Available' },
+            { id: 4, name: 'Suresh Patel', empId: 'EMP-004', contact: '+91 98765 43213', license: 'GJ-456789', bus: 'B-104', status: 'Available' },
+            { id: 5, name: 'Anand Raj', empId: 'EMP-005', contact: '+91 98765 43214', license: 'TN-567890', bus: 'B-105', status: 'On Leave' },
+            { id: 6, name: 'Vikram Singh', empId: 'EMP-006', contact: '+91 98765 43215', license: 'MH-678901', bus: 'B-106', status: 'Available' },
+        ];
+        let routes = [
+            { id: 1, name: 'Route A', desc: 'City Express – South Chennai', stops: ['College Main Gate', 'T. Nagar Bus Stop', 'Adyar Signal', 'Main Gate (Pick)', 'Perungudi Stop', 'Sholinganallur', 'OMR Terminus'] },
+            { id: 2, name: 'Route B', desc: 'North Link – Avadi & Tiruvallur', stops: ['College Main Gate', 'Padi Interchange', 'Ambattur Estate', 'Avadi Station', 'Tiruvallur Stop'] },
+            { id: 3, name: 'Route C', desc: 'South Campus – Anna Nagar & Koyambedu', stops: ['College Main Gate', 'Anna Nagar Roundtana', 'Koyambedu Bus Stand', 'Vadapalani Signal', 'Ashok Nagar', 'Tambaram Depot'] },
+            { id: 4, name: 'Route D', desc: 'West Campus – Guindy & Chrompet', stops: ['College Main Gate', 'Guindy Estate', 'St. Thomas Mount', 'Chromepet Station', 'Pammal Junction', 'Pallavaram'] },
+        ];
+        let students = [
+            { id: 1, name: 'Arjun Kumar', sId: 'CS2021001', email: 'arjun@college.edu', route: 'Route A', stop: 'Main Gate (Pick)', status: 'Active' },
+            { id: 2, name: 'Priya Sharma', sId: 'CS2021002', email: 'priya@college.edu', route: 'Route B', stop: 'Ambattur Estate', status: 'Active' },
+            { id: 3, name: 'Rahul Verma', sId: 'CS2021003', email: 'rahul@college.edu', route: 'Route C', stop: 'Tambaram Depot', status: 'Active' },
+            { id: 4, name: 'Sneha Patel', sId: 'CS2021004', email: 'sneha@college.edu', route: 'Route A', stop: 'Sholinganallur', status: 'Active' },
+            { id: 5, name: 'Kiran Reddy', sId: 'CS2021005', email: 'kiran@college.edu', route: 'Route D', stop: 'Pammal Junction', status: 'Active' },
+            { id: 6, name: 'Deepa Nair', sId: 'CS2021006', email: 'deepa@college.edu', route: 'Route C', stop: 'Ashok Nagar', status: 'Inactive' },
+            { id: 7, name: 'Arun Balaji', sId: 'CS2021007', email: 'arun@college.edu', route: 'Route B', stop: 'Avadi Station', status: 'Active' },
+            { id: 8, name: 'Meena Iyer', sId: 'CS2021008', email: 'meena@college.edu', route: 'Route A', stop: 'Adyar Signal', status: 'Active' },
+        ];
+        let actLog = [], bcastLog = [];
+
+        /* ── RENDER TABLES ── */
+        const stCls = s => s === 'Active' ? 'sa' : s === 'Maintenance' ? 'sm' : 'si';
+        function renderBuses() {
+            document.getElementById('busTb').innerHTML = buses.map(b => `<tr><td><strong>${b.number}</strong></td><td>${b.model}</td><td>${b.driver}</td><td>${b.route}</td><td>${b.capacity}</td><td><span class="sb2 ${stCls(b.status)}">${b.status}</span></td><td><div class="ab"><button class="be" onclick="openEdit(${b.id})">✏️ Edit</button><button class="bd2" onclick="delBus(${b.id})">🗑️</button></div></td></tr>`).join('');
+            updateCounts();
+        }
+        function renderDrivers() {
+            document.getElementById('drvTb').innerHTML = drivers.map(d => `<tr><td><strong>${d.name}</strong></td><td>${d.empId}</td><td>${d.contact}</td><td>${d.license}</td><td>${d.bus || '—'}</td><td><span class="sb2 ${d.status === 'Available' ? 'sa' : 'si'}">${d.status}</span></td><td><button class="bd2" onclick="delDrv(${d.id})">🗑️</button></td></tr>`).join('');
+        }
+        function renderRoutes() {
+            document.getElementById('rtGrid').innerHTML = routes.map(r => `<div class="rc"><div class="rch"><span class="rcn">${r.name}</span><span class="rcc">${r.stops.length} stops</span></div><div class="rcd">${r.desc}</div><div class="rcs">${r.stops.map(s => `<div class="rcsi">${s}</div>`).join('')}</div><div class="rca"><button class="bd2" onclick="delRoute(${r.id})">🗑️ Delete</button></div></div>`).join('');
+            updateCounts();
+        }
+        function renderStudents(list = students) {
+            document.getElementById('stuTb').innerHTML = list.map(s => `<tr><td><strong>${s.name}</strong></td><td>${s.sId}</td><td>${s.email}</td><td>${s.route}</td><td>${s.stop}</td><td><span class="sb2 ${s.status === 'Active' ? 'sa' : 'si'}">${s.status}</span></td></tr>`).join('');
+        }
+        function renderOverview() {
+            document.getElementById('ovTb').innerHTML = buses.map(b => `<tr><td><strong>${b.number}</strong></td><td>${b.driver}</td><td>${b.route}</td><td>${b.speed} km/h</td><td><span class="sb2 ${stCls(b.status)}">${b.status}</span></td><td>${fmtTime()}</td></tr>`).join('');
+        }
+        function renderLiveBusCards() {
+            document.getElementById('liveBusCards').innerHTML = buses.map(b => `<div class="bc"><div class="bch"><span class="bcn">${b.number}</span><span class="bcs ${b.status === 'Active' ? 'on' : ''}">${b.status}</span></div><div class="bci"><strong>${b.driver}</strong><br>${b.route}<br>Cap: ${b.capacity}</div><div class="bcsp">${b.speed}<span> km/h</span></div></div>`).join('');
+        }
+        function filterStu() { const q = (document.getElementById('stuSearch').value || '').toLowerCase(); renderStudents(students.filter(s => s.name.toLowerCase().includes(q) || s.sId.toLowerCase().includes(q) || s.route.toLowerCase().includes(q))) }
+        function updateCounts() { setText('cBus', buses.length); setText('cAct', buses.filter(b => b.status === 'Active').length); setText('cDrv', drivers.length); setText('cStu', students.length); setText('cRt', routes.length) }
+
+        /* ── CRUD ── */
+        function addBus() {
+            const n = document.getElementById('nBNum').value.trim(), m = document.getElementById('nBMod').value.trim();
+            if (!n || !m) { toast2('⚠️ Bus number & model required'); return }
+            buses.push({ id: Date.now(), number: n, model: m, driver: document.getElementById('nBDrv').value, route: document.getElementById('nBRt').value, capacity: parseInt(document.getElementById('nBCap').value) || 45, status: 'Active', lat: 13.08 + (Math.random() - .5) * .1, lng: 80.27 + (Math.random() - .5) * .1, speed: 30 });
+            renderBuses(); renderOverview(); closeMod('modBus'); toast2('✅ Bus ' + n + ' added!'); addAct('🚌', 'Bus ' + n + ' added to roster.');
+            ['nBNum', 'nBMod', 'nBCap'].forEach(i => { const e = document.getElementById(i); if (e) e.value = '' });
+        }
+        function delBus(id) { const b = buses.find(x => x.id === id); if (!b || !confirm('Delete ' + b.number + '?')) return; buses = buses.filter(x => x.id !== id); renderBuses(); renderOverview(); toast2('🗑️ ' + b.number + ' removed.'); addAct('🗑️', 'Bus ' + b.number + ' deleted.') }
+        function openEdit(id) { const b = buses.find(x => x.id === id); if (!b) return; document.getElementById('eIdx').value = id; document.getElementById('eBN').value = b.number; document.getElementById('eBM').value = b.model; document.getElementById('eBC').value = b.capacity; document.getElementById('eBS').value = b.status; openMod('modEdit') }
+        function saveEdit() { const id = parseInt(document.getElementById('eIdx').value), b = buses.find(x => x.id === id); if (!b) return; b.number = document.getElementById('eBN').value || b.number; b.model = document.getElementById('eBM').value || b.model; b.capacity = parseInt(document.getElementById('eBC').value) || b.capacity; b.status = document.getElementById('eBS').value; renderBuses(); renderOverview(); closeMod('modEdit'); toast2('✅ ' + b.number + ' updated!'); addAct('✏️', 'Bus ' + b.number + ' updated.') }
+        function addDriver() { const n = document.getElementById('nDName').value.trim(), i = document.getElementById('nDId').value.trim(); if (!n || !i) { toast2('⚠️ Name & ID required'); return } drivers.push({ id: Date.now(), name: n, empId: i, contact: document.getElementById('nDCon').value, license: document.getElementById('nDLic').value, bus: '—', status: 'Available' }); renderDrivers(); closeMod('modDrv'); toast2('✅ Driver ' + n + ' added!'); addAct('👨‍✈️', 'Driver ' + n + ' added.');['nDName', 'nDId', 'nDCon', 'nDLic'].forEach(f => { const e = document.getElementById(f); if (e) e.value = '' }) }
+        function delDrv(id) { const d = drivers.find(x => x.id === id); if (!d || !confirm('Remove ' + d.name + '?')) return; drivers = drivers.filter(x => x.id !== id); renderDrivers(); toast2('🗑️ ' + d.name + ' removed.'); addAct('🗑️', 'Driver ' + d.name + ' removed.') }
+        function addRoute() { const n = document.getElementById('nRN').value.trim(), stops = document.getElementById('nRS').value.trim().split(',').map(s => s.trim()).filter(Boolean); if (!n || !stops.length) { toast2('⚠️ Name & stops required'); return } routes.push({ id: Date.now(), name: n, desc: document.getElementById('nRD').value, stops }); renderRoutes(); closeMod('modRt'); toast2('✅ ' + n + ' added!'); addAct('🛣️', 'Route ' + n + ' created.');['nRN', 'nRD', 'nRS'].forEach(f => { const e = document.getElementById(f); if (e) e.value = '' }) }
+        function delRoute(id) { const r = routes.find(x => x.id === id); if (!r || !confirm('Delete ' + r.name + '?')) return; routes = routes.filter(x => x.id !== id); renderRoutes(); toast2('🗑️ ' + r.name + ' deleted.'); addAct('🗑️', 'Route ' + r.name + ' deleted.') }
+
+        /* ── BROADCAST ── */
+        const tgLbl = { all: 'All Students', routeA: 'Route A', routeB: 'Route B', routeC: 'Route C', routeD: 'Route D' };
+        const tyLbl = { info: 'ℹ️ Info', alert: '⚠️ Alert', arrival: '🚌 Arrival', delay: '⏰ Delay' };
+        function sendBcast() {
+            const tg = document.getElementById('bTgt').value, ty = document.getElementById('bType').value;
+            const title = document.getElementById('bTitle').value.trim(), msg = document.getElementById('bMsg').value.trim();
+            if (!title || !msg) { toast2('⚠️ Title & message required'); return }
+            bcastLog.unshift({ tg, ty, title, msg, time: fmtTime() }); renderBlog();
+            toast2('📤 Sent to ' + tgLbl[tg] + '!'); addAct('📢', 'Broadcast "' + title + '" sent to ' + tgLbl[tg] + '.');
+            document.getElementById('bTitle').value = ''; document.getElementById('bMsg').value = '';
+        }
+        function renderBlog() {
+            const c = document.getElementById('bLog');
+            if (!bcastLog.length) { c.innerHTML = '<div class="ne">No notifications sent yet.</div>'; return }
+            c.innerHTML = bcastLog.map(b => `<div class="bli"><div class="blmeta"><span class="blt bt-${b.ty}">${tyLbl[b.ty]}</span><span class="bltm">${b.time}</span></div><div class="blti">${b.title}</div><div class="blm">${b.msg}</div><div class="bltg">📤 To: ${tgLbl[b.tg]}</div></div>`).join('');
+        }
+        function clearBlog() { bcastLog = []; renderBlog() }
+
+        /* ── ACTIVITY ── */
+        function addAct(icon, text) { actLog.unshift({ icon, text, time: fmtTime() }); if (actLog.length > 20) actLog.pop(); renderAct() }
+        function renderAct() {
+            const l = document.getElementById('actList'); if (!l) return;
+            l.innerHTML = actLog.map(a => `<div class="ai2"><span>${a.icon}</span><span class="ait">${a.text}</span><span class="aim">${a.time}</span></div>`).join('');
+        }
+
+        /* ── ADMIN MAP ── */
+        let adminMap = null, busMks = {};
+        function initAdminMap() {
+            if (adminMap) return;
+            document.getElementById('aMapLoad').style.display = 'none';
+            adminMap = L.map('adminMap').setView([13.0827, 80.2707], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(adminMap);
+            buses.forEach(b => {
+                if (b.status !== 'Active') return;
+                const ico = L.divIcon({ html: `<div style="background:#6C63FF;color:#fff;padding:4px 8px;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3)">🚌 ${b.number}</div>`, className: '', iconAnchor: [30, 16] });
+                busMks[b.id] = L.marker([b.lat, b.lng], { icon: ico }).bindPopup(`<strong>${b.number}</strong><br>${b.driver}<br>${b.route}<br>Speed: ${b.speed} km/h`).addTo(adminMap);
+            });
+            renderLiveBusCards();
+            setInterval(() => {
+                buses.forEach(b => { if (b.status !== 'Active') return; b.lat += (Math.random() - .5) * .005; b.lng += (Math.random() - .5) * .005; b.speed = Math.max(0, b.speed + Math.floor(Math.random() * 6 - 3)); if (busMks[b.id]) busMks[b.id].setLatLng([b.lat, b.lng]) });
+                renderLiveBusCards(); renderOverview(); setText('rT', 'Updated ' + fmtTime());
+            }, 3000);
+        }
+        function fitMap() { if (!adminMap) return; const ab = buses.filter(b => b.status === 'Active'); if (!ab.length) return; adminMap.fitBounds(L.latLngBounds(ab.map(b => [b.lat, b.lng])), { padding: [40, 40] }) }
+
+        /* ── DROPDOWNS ── */
+        function popDrops() {
+            const ds = document.getElementById('nBDrv'); if (ds) ds.innerHTML = '<option>Select Driver</option>' + drivers.map(d => `<option>${d.name} (${d.empId})</option>`).join('');
+            const rs = document.getElementById('nBRt'); if (rs) rs.innerHTML = '<option>Select Route</option>' + routes.map(r => `<option>${r.name} – ${r.desc}</option>`).join('');
+        }
+
+        /* ── INIT ── */
+        document.addEventListener('DOMContentLoaded', () => {
+            applySavedTheme();
+            renderBuses(); renderDrivers(); renderRoutes(); renderStudents(); renderOverview(); updateCounts();
+            addAct('🟢', 'System started. All buses online.');
+            addAct('🚌', 'B-102 departed College Main Gate.');
+            addAct('📍', 'B-103 arrived at Padi Interchange.');
+            addAct('⚠️', 'B-105 moved to Maintenance.');
+            addAct('👨‍✈️', 'Driver Vikram Singh checked in.');
+        });
+    </script>
+</body>
+
+</html>

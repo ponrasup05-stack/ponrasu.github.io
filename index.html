@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BusTrack Pro – Login</title>
+    <meta name="description" content="Real-time student bus tracking system login." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        /* ── Design Tokens ── */
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #504CCF;
+            --primary-light: #8B85FF;
+            --secondary: #11D3BC;
+            --accent: #FF6B6B;
+            --success: #06D6A0;
+            --danger: #EF233C;
+            --warning: #FFD166;
+            --bg: #F0F2F8;
+            --bg-card: #ffffff;
+            --text: #1A1C2E;
+            --text-sec: #6B7280;
+            --text-muted: #9CA3AF;
+            --border: #E5E7EB;
+            --shadow: 0 4px 24px rgba(108, 99, 255, .08);
+            --r-sm: 8px;
+            --r-md: 12px;
+            --r-lg: 20px;
+            --r-xl: 28px;
+            --t: .25s cubic-bezier(.4, 0, .2, 1);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: var(--font);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1A1C2E 0%, #2D3168 50%, #6C63FF 100%);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* particles */
+        .bg {
+            position: absolute;
+            inset: 0;
+            pointer-events: none
+        }
+
+        .p {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .06);
+            animation: floatUp 12s infinite ease-in-out
+        }
+
+        .p:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            left: 10%;
+            bottom: -100px;
+            animation-duration: 10s
+        }
+
+        .p:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            left: 30%;
+            bottom: -150px;
+            animation-delay: 2s;
+            animation-duration: 14s
+        }
+
+        .p:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            left: 55%;
+            bottom: -80px;
+            animation-delay: 4s;
+            animation-duration: 9s
+        }
+
+        .p:nth-child(4) {
+            width: 90px;
+            height: 90px;
+            left: 75%;
+            bottom: -110px;
+            animation-delay: 1s;
+            animation-duration: 12s
+        }
+
+        .p:nth-child(5) {
+            width: 50px;
+            height: 50px;
+            left: 85%;
+            bottom: -60px;
+            animation-delay: 3s;
+            animation-duration: 8s
+        }
+
+        .p:nth-child(6) {
+            width: 140px;
+            height: 140px;
+            left: 5%;
+            bottom: -180px;
+            animation-delay: 5s;
+            animation-duration: 16s
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: .3
+            }
+
+            50% {
+                opacity: .6
+            }
+
+            100% {
+                transform: translateY(-110vh) rotate(720deg);
+                opacity: 0
+            }
+        }
+
+        /* wrapper */
+        .wrap {
+            display: flex;
+            width: min(900px, 95vw);
+            background: rgba(255, 255, 255, .04);
+            backdrop-filter: blur(20px);
+            border-radius: var(--r-xl);
+            border: 1px solid rgba(255, 255, 255, .1);
+            box-shadow: 0 32px 80px rgba(0, 0, 0, .4);
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+            animation: slideUp .6s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* brand */
+        .brand {
+            flex: 1;
+            background: linear-gradient(145deg, #6C63FF, #11D3BC);
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, .1);
+            border-radius: 50%
+        }
+
+        .brand::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 50%
+        }
+
+        .b-icon {
+            font-size: 56px;
+            animation: bounce 2s infinite ease-in-out
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-10px)
+            }
+        }
+
+        .b-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -.5px
+        }
+
+        .b-title span {
+            opacity: .75
+        }
+
+        .b-sub {
+            font-size: 14px;
+            color: rgba(255, 255, 255, .85);
+            line-height: 1.6
+        }
+
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 8px
+        }
+
+        .fi {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, .92);
+            font-size: 14px;
+            font-weight: 500
+        }
+
+        /* card */
+        .card {
+            flex: 1;
+            background: #fff;
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px
+        }
+
+        .card h2 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text)
+        }
+
+        .card .sub {
+            font-size: 14px;
+            color: var(--text-sec);
+            margin-top: 4px
+        }
+
+        /* role tabs */
+        .tabs {
+            display: flex;
+            background: #F0F2F8;
+            border-radius: 40px;
+            padding: 4px;
+            gap: 4px
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-sec);
+            cursor: pointer;
+            transition: all var(--t);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: var(--font);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(108, 99, 255, .3)
+        }
+
+        .tab:hover:not(.active) {
+            background: #E5E7EB
+        }
+
+        /* form */
+        .fg {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .fg label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-sec)
+        }
+
+        .iw {
+            position: relative;
+            display: flex;
+            align-items: center
+        }
+
+        .ii {
+            position: absolute;
+            left: 14px;
+            font-size: 16px;
+            z-index: 1
+        }
+
+        .iw input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            background: #F0F2F8;
+            color: var(--text);
+            font-size: 14px;
+            font-family: var(--font);
+            outline: none;
+            transition: border-color var(--t), box-shadow var(--t);
+        }
+
+        .iw input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, .15)
+        }
+
+        .tp {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer
+        }
+
+        .err {
+            background: rgba(239, 35, 60, .1);
+            border: 1px solid rgba(239, 35, 60, .3);
+            border-radius: var(--r-sm);
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border: none;
+            border-radius: var(--r-sm);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(108, 99, 255, .35);
+            transition: all var(--t);
+            font-family: var(--font);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 99, 255, .45)
+        }
+
+        /* demo creds */
+        .demo {
+            border: 1px dashed var(--border);
+            border-radius: var(--r-md);
+            padding: 16px;
+            background: #F9FAFB
+        }
+
+        .dl {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: 10px
+        }
+
+        .cg {
+            display: flex;
+            gap: 10px
+        }
+
+        .ci {
+            flex: 1;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: 10px;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-sec);
+            transition: all var(--t);
+        }
+
+        .ci:hover {
+            border-color: var(--primary);
+            background: rgba(108, 99, 255, .06);
+            color: var(--text)
+        }
+
+        .ci strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 2px
+        }
+
+        /* spinner */
+        .sp {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, .4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        /* toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1A1C2E;
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: var(--r-md);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: all .3s ease;
+            pointer-events: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .3);
+            max-width: 320px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        @media(max-width:680px) {
+            .brand {
+                display: none
+            }
+
+            .card {
+                padding: 32px 24px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg">
+        <div class="p"></div>
+        <div class="p"></div>
+        <div class="p"></div>
+        <div class="p"></div>
+        <div class="p"></div>
+        <div class="p"></div>
+    </div>
+
+    <div class="wrap">
+        <!-- Brand -->
+        <div class="brand">
+            <div class="b-icon">🚌</div>
+            <div class="b-title">BusTrack <span>Pro</span></div>
+            <p class="b-sub">Real-time Student Bus Tracking &amp; Arrival Notification System</p>
+            <div class="features">
+                <div class="fi"><span>📍</span><span>Live GPS Tracking</span></div>
+                <div class="fi"><span>🔔</span><span>Instant Notifications</span></div>
+                <div class="fi"><span>🗺️</span><span>Interactive Maps</span></div>
+                <div class="fi"><span>⏱️</span><span>Real-time ETA</span></div>
+            </div>
+        </div>
+
+        <!-- Card -->
+        <div class="card">
+            <div>
+                <h2>Welcome Back</h2>
+                <p class="sub">Sign in to your dashboard</p>
+            </div>
+
+            <div class="tabs" id="tabs">
+                <button class="tab active" data-role="student" onclick="switchRole('student')">🎓 Student</button>
+                <button class="tab" data-role="admin" onclick="switchRole('admin')">🛡️ Admin</button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="fg" style="margin-bottom:14px">
+                    <label>Username</label>
+                    <div class="iw">
+                        <span class="ii">👤</span>
+                        <input type="text" id="username" placeholder="Enter your username" autocomplete="off"
+                            required />
+                    </div>
+                </div>
+                <div class="fg" style="margin-bottom:14px">
+                    <label>Password</label>
+                    <div class="iw">
+                        <span class="ii">🔒</span>
+                        <input type="password" id="password" placeholder="Enter your password" required />
+                        <button type="button" class="tp" onclick="togglePass()" id="tpBtn">👁️</button>
+                    </div>
+                </div>
+                <div id="err" class="err hidden">⚠️ Invalid credentials. Please try again.</div>
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span id="btnTxt">Sign In</span>
+                    <div class="sp hidden" id="sp"></div>
+                </button>
+            </form>
+
+            <div class="demo">
+                <p class="dl">🧪 Demo Credentials</p>
+                <div class="cg">
+                    <div class="ci" onclick="fillCred('student1','pass123')">
+                        <strong>Student</strong>student1 / pass123
+                    </div>
+                    <div class="ci" onclick="fillCred('admin1','admin123')">
+                        <strong>Admin</strong>admin1 / admin123
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /* ── Users Database ── */
+        const USERS = {
+            student1: { password: 'pass123', role: 'student', name: 'Arjun Kumar', busId: 'B-102', stopId: 4 },
+            student2: { password: 'pass123', role: 'student', name: 'Priya Sharma', busId: 'B-103', stopId: 3 },
+            student3: { password: 'pass123', role: 'student', name: 'Rahul Verma', busId: 'B-101', stopId: 6 },
+            admin1: { password: 'admin123', role: 'admin', name: 'Admin Kumar' },
+            admin2: { password: 'admin123', role: 'admin', name: 'System Admin' },
+        };
+        let selectedRole = 'student';
+
+        function switchRole(role) {
+            selectedRole = role;
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.role === role));
+        }
+        function fillCred(u, p) {
+            document.getElementById('username').value = u;
+            document.getElementById('password').value = p;
+            const us = USERS[u]; if (us) switchRole(us.role);
+        }
+        function togglePass() {
+            const i = document.getElementById('password'), b = document.getElementById('tpBtn');
+            if (i.type === 'password') { i.type = 'text'; b.textContent = '🙈'; }
+            else { i.type = 'password'; b.textContent = '👁️'; }
+        }
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            const err = document.getElementById('err');
+            const bt = document.getElementById('btnTxt');
+            const sp = document.getElementById('sp');
+            bt.textContent = 'Signing in...'; sp.classList.remove('hidden'); err.classList.add('hidden');
+            setTimeout(() => {
+                const user = USERS[u];
+                if (!user || user.password !== p) {
+                    err.textContent = '⚠️ Invalid credentials. Please try again.';
+                    err.classList.remove('hidden'); bt.textContent = 'Sign In'; sp.classList.add('hidden'); return;
+                }
+                if (user.role !== selectedRole) {
+                    err.textContent = '⚠️ Wrong role selected for this account.';
+                    err.classList.remove('hidden'); bt.textContent = 'Sign In'; sp.classList.add('hidden'); return;
+                }
+                sessionStorage.setItem('bustrack_user', JSON.stringify({ username: u, role: user.role, name: user.name, busId: user.busId || null, stopId: user.stopId || null }));
+                const theme = localStorage.getItem('bustrack_theme');
+                if (theme === 'dark') document.body.classList.add('dark');
+                window.location.href = user.role === 'admin' ? 'adminDashboard.html' : 'studentDashboard.html';
+            }, 600);
+        }
+        function showToast(msg, d = 2800) {
+            const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), d);
+        }
+    </script>
+</body>
+
+</html>
